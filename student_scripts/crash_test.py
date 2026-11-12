@@ -29,22 +29,23 @@ for candidate in [Path.cwd(), ROOT_DIR / "code_corrige", ROOT_DIR / "code_base"]
             sys.path.insert(0, str(cand_path))
         break
 
-from dotenv import load_dotenv  # noqa: E402
-from langchain_core.messages import BaseMessage, HumanMessage  # noqa: E402
-from rich.console import Console  # noqa: E402
-from rich.panel import Panel  # noqa: E402
-from rich.progress import (  # noqa: E402
+from dotenv import load_dotenv
+from langchain_core.messages import BaseMessage, HumanMessage
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import (
     BarColumn,
     Progress,
     SpinnerColumn,
     TextColumn,
     TimeElapsedColumn,
 )
-from rich.table import Table  # noqa: E402
-from rich.text import Text  # noqa: E402
-from src.core.registry import AgentRegistry  # noqa: E402
-from src.core.state import AgentState  # noqa: E402
-from src.orchestrator.supervisor import build_multiagent_graph  # noqa: E402
+from rich.table import Table
+from rich.text import Text
+
+from src.core.registry import AgentRegistry
+from src.core.state import AgentState
+from src.orchestrator.supervisor import build_multiagent_graph
 
 load_dotenv()
 

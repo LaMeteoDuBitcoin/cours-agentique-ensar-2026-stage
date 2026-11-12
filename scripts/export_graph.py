@@ -24,11 +24,12 @@ if sys.platform == "win32":
     if hasattr(sys.stderr, "reconfigure"):
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-from rich.console import Console  # noqa: E402
-from rich.panel import Panel  # noqa: E402
-from rich.syntax import Syntax  # noqa: E402
-from src.core.registry import AgentRegistry  # noqa: E402
-from src.orchestrator.supervisor import build_multiagent_graph  # noqa: E402
+from rich.console import Console
+from rich.panel import Panel
+from rich.syntax import Syntax
+
+from src.core.registry import AgentRegistry
+from src.orchestrator.supervisor import build_multiagent_graph
 
 console = Console(legacy_windows=False if sys.platform == "win32" else None)
 

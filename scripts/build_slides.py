@@ -149,7 +149,7 @@ def compile_slides(
 
     elapsed = time.time() - start_time
     print("\n" + "═" * 60)
-    print(f"🏁 Bilan de compilation :")
+    print("🏁 Bilan de compilation :")
     print(f"   • Présentations traitées avec succès : {success_count} / {total_files}")
     if error_count > 0:
         print(f"   • Erreurs rencontrées                : {error_count}")
