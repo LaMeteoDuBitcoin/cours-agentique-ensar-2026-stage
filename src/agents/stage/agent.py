@@ -35,7 +35,7 @@ class InternshipMatcherPlugin(BaseAgentPlugin):
         ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         model_name = os.getenv("OLLAMA_LLM_MODEL", "qwen2.5:3b")
 
-        llm = ChatOllama(base_url=ollama_url, model=model_name, temperature=0.0, num_predict=400)
+        llm = ChatOllama(base_url=ollama_url, model=model_name, temperature=0.0, num_predict=800)
 
         # Lazy loading du vector store pour éviter de ralentir le démarrage si non requis
         vector_store = None
@@ -72,7 +72,7 @@ Si le résultat indique une erreur ou aucune correspondance, explique-le honnêt
             )
 
             return {
-                "messages": [AIMessage(content=f"[Agent {self.name}]\n{response.content}")],
+                "messages": [AIMessage(content=f"[Agent {self.name}] \n{response.content}")],
                 "current_agent": self.name,
             }
 

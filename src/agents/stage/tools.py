@@ -11,17 +11,24 @@ _STOPWORDS = {
     "avec", "dans", "pour", "sur", "les", "des", "une", "aux", "est", "sont",
     "être", "poste", "stage", "mission", "missions", "profil", "recherche",
     "équipe", "equipe", "travail", "bonne", "plus", "ainsi", "cette", "vous", "nous",
-    "the", "and", "for", "with", "from", "this", "that", "your", "will",
+    "leur", "leurs", "tous", "toutes", "tout", "toute", "trop", "très", "peu"
 }
 
 
 def _normalise_token(token: str) -> str:
+    """Supprime les accents et convertit un mot en minuscules."""
     without_accents = unicodedata.normalize("NFKD", token)
     return "".join(char for char in without_accents if not unicodedata.combining(char)).lower()
 
 
+# La fonction conserve les termes alphanumériques, supprime les accents et 
+# ignore les mots génériques présents dans ``_STOPWORDS``.
 def extract_technical_keywords(text: str) -> list[str]:
-    """Extrait des mots-clés techniques normalisés dans un texte d'offre ou de syllabus."""
+    """Extrait les mots-clés uniques et normalisés d'une offre ou d'un syllabus.
+
+    La fonction conserve les termes alphanumériques, supprime les accents et
+    ignore les mots génériques présents dans ``_STOPWORDS``.
+    """
     tokens = re.findall(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9+#.-]{1,}", text)
     keywords: list[str] = []
     seen: set[str] = set()
@@ -34,13 +41,20 @@ def extract_technical_keywords(text: str) -> list[str]:
     return keywords
 
 
+# Le résultat est compris entre 0 et 1. Deux ensembles vides produisent 0
+# afin d'éviter une division par zéro et de signaler l'absence de données.
 def compute_jaccard_similarity(offer_skills: set[str], course_skills: set[str]) -> float:
-    """Calcule une similarité de Jaccard bornée entre deux ensembles de compétences."""
+    """Calcule la similarité de Jaccard entre les compétences de l'offre et du cours.
+
+    Le résultat est compris entre 0 et 1. Deux ensembles vides produisent 0
+    afin d'éviter une division par zéro et de signaler l'absence de données.
+    """
     union = offer_skills | course_skills
     return len(offer_skills & course_skills) / len(union) if union else 0.0
 
-
+# Regroupe les documents récupérés par code d'unité d'enseignement
 def _group_documents_by_course(documents: Iterable[Any]) -> dict[str, list[Any]]:
+    """Regroupe les documents récupérés par code d'unité d'enseignement."""
     grouped: dict[str, list[Any]] = {}
     for document in documents:
         code = str(document.metadata.get("code_ue", "")).strip().upper()
@@ -49,14 +63,26 @@ def _group_documents_by_course(documents: Iterable[Any]) -> dict[str, list[Any]]
     return grouped
 
 
+# Les documents sont récupérés depuis le vector store, regroupés par code UE,
+# puis comparés aux mots-clés de l'offre. Le vector store peut être injecté
+# pour faciliter les tests et éviter une nouvelle initialisation.
 def find_matching_courses(
     offer_text: str,
     vector_store: Any | None = None,
     k: int = 8,
 ) -> dict[str, Any]:
-    """Recherche les UE pertinentes et calcule un score explicable pour chacune."""
+    """Recherche les UE pertinentes et calcule un score explicable pour chacune.
+
+    Les documents sont récupérés depuis le vector store, regroupés par code UE,
+    puis comparés aux mots-clés de l'offre. Le vector store peut être injecté
+    pour faciliter les tests et éviter une nouvelle initialisation.
+    """
     if not offer_text.strip():
-        return {"status": "invalid_input", "message": "L'offre de stage ne peut pas être vide.", "matches": []}
+        return {
+            "status": "invalid_input",
+            "message": "L'offre de stage ne peut pas être vide.",
+            "matches": [],
+        }
 
     try:
         store = vector_store or get_vector_store(reindex_if_empty=False)
@@ -92,9 +118,13 @@ def find_matching_courses(
         "documents_analyzed": len(documents),
     }
 
-
+# Transforme les résultats du matching en contexte lisible pour le LLM
 def format_matching_context(result: dict[str, Any]) -> str:
-    """Formate les résultats déterministes pour le prompt du modèle."""
+    """Transforme les résultats du matching en contexte lisible pour le LLM.
+
+    En cas d'erreur ou d'absence de résultat, un message explicite est renvoyé
+    afin que l'agent puisse répondre sans inventer de correspondance.
+    """
     if result.get("status") != "success":
         return str(result.get("message", "Aucun résultat disponible."))
     if not result["matches"]:
