@@ -45,9 +45,14 @@ class InternshipMatcherPlugin(BaseAgentPlugin):
             if vector_store is None:
                 vector_store = get_vector_store(reindex_if_empty=False)
 
-            # Dernier message utilisateur
-            last_message = state["messages"][-1]
-            user_query = str(last_message.content)
+            # Retrouver la dernière demande humaine, même si des agents ont répondu depuis.
+            user_message = next(
+                (message for message in reversed(state["messages"]) if isinstance(message, HumanMessage)),
+                None,
+            )
+            if user_message is None:
+                raise ValueError("L'état doit contenir au moins un message humain.")
+            user_query = str(user_message.content)
 
             # Retrieval et calcul déterministe des correspondances.
             matching_result = find_matching_courses(user_query, vector_store=vector_store, k=2)

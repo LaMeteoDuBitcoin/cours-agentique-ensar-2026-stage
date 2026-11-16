@@ -133,7 +133,7 @@ def format_matching_context(result: dict[str, Any]) -> str:
     sections = []
     for match in result["matches"]:
         sections.append(
-            f"[{match['code_ue']}] score={match['score']}%; "
+            f"[{match['code_ue']}] score de similarité de {match['score']}%; "
             f"compétences communes={', '.join(match['competences_communes']) or 'aucune'}\n"
             f"{match['context']}"
         )

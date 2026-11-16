@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
 from src.agents.stage.agent import InternshipMatcherPlugin
 from src.agents.stage.tools import (
@@ -78,3 +78,29 @@ def test_internship_matcher_node_uses_deterministic_matching(
     assert result["current_agent"] == "internship_matcher"
     assert "SSI_107" in result["messages"][0].content
     assert "SSI_107" in mock_chat_ollama.return_value.invoke.call_args.args[0][0].content
+
+
+@patch("src.agents.stage.agent.ChatOllama")
+@patch("src.agents.stage.agent.get_vector_store")
+def test_internship_matcher_node_uses_last_human_message(
+    mock_get_vector_store: MagicMock, mock_chat_ollama: MagicMock
+):
+    vector_store = MagicMock()
+    vector_store.as_retriever.return_value.invoke.return_value = []
+    mock_get_vector_store.return_value = vector_store
+    mock_chat_ollama.return_value.invoke.return_value.content = "Aucune correspondance."
+
+    agent = InternshipMatcherPlugin()
+    agent.create_node()(
+        AgentState(
+            messages=[
+                HumanMessage(content="Demande utilisateur"),
+                AIMessage(content="Réponse du premier agent"),
+            ],
+            next_agent=None,
+            current_agent="first_agent",
+            context_data={},
+        )
+    )
+
+    assert vector_store.as_retriever.return_value.invoke.call_args.args[0] == "Demande utilisateur"
