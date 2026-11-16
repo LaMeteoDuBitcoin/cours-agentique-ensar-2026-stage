@@ -50,7 +50,7 @@ class InternshipMatcherPlugin(BaseAgentPlugin):
             user_query = str(last_message.content)
 
             # Retrieval et calcul déterministe des correspondances.
-            matching_result = find_matching_courses(user_query, vector_store=vector_store, k=8)
+            matching_result = find_matching_courses(user_query, vector_store=vector_store, k=2)
             context_text = format_matching_context(matching_result)
 
             # Génération de la réponse avec les résultats calculés en Python.
@@ -64,7 +64,9 @@ EXTRAIT DE SYLLABUS :
 {context_text}
 ======================
 
-Si le résultat indique une erreur ou aucune correspondance, explique-le honnêtement et ne propose pas de code UE absent des résultats.
+Consigne explicite :
+- Si le résultat indique une erreur ou aucune correspondance, explique-le honnêtement et ne propose pas de code UE absent des résultats.
+- Ne salue pas l'utilisateur, ne te présente pas, juste réponds à la requête en te basant sur les résultats fournis et réponds directement.
 """
 
             response = llm.invoke(
